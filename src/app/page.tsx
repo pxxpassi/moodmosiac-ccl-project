@@ -8,9 +8,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Heatmap } from "@/components/Heatmap";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Upload } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MockedEntries = [
   { date: "2024-01-05", count: 5 },
@@ -42,10 +43,14 @@ const MockedEntries = [
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [moodColor, setMoodColor] = useState("#ffffff");
+  const [moodColor, setMoodColor] = useState("#E6E6FA"); // Default to soft lavender
   const [reflection, setReflection] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [date, setDate] = useState<Date | undefined>(new Date());
+    const [user, setUser] = useState({
+        name: "User",
+        imageUrl: "https://picsum.photos/50/50", // Placeholder image
+    });
 
   useEffect(() => {
     // Check for authentication status here (e.g., JWT token in localStorage)
@@ -94,18 +99,24 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-secondary text-foreground">
-      <header className="bg-primary p-6 flex justify-between items-center">
+      <header className="bg-primary p-6 flex justify-between items-center shadow-md">
         <h1 className="text-2xl font-semibold">MoodMosiac</h1>
-        {isAuthenticated ? (
-          <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
-        ) : (
-          <Button variant="outline" size="sm" onClick={handleLogin}>Login</Button>
-        )}
+        <div className="flex items-center space-x-4">
+            <Avatar>
+                <AvatarImage src={user.imageUrl} alt={user.name} />
+                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          {isAuthenticated ? (
+            <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleLogin}>Login</Button>
+          )}
+        </div>
       </header>
 
       <main className="container mx-auto p-6 flex-1">
         {isAuthenticated ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Mood Entry Card */}
             <Card>
               <CardHeader>
@@ -113,12 +124,13 @@ export default function Home() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="flex items-center space-x-2">
-                  <label htmlFor="moodColor">Mood Color:</label>
+                  <Label htmlFor="moodColor">Mood Color:</Label>
                   <input
                     type="color"
                     id="moodColor"
                     value={moodColor}
                     onChange={handleColorChange}
+                    className="h-8 w-16" // Adjust the size of the color input
                   />
                 </div>
                 <div className="grid gap-2">
@@ -128,6 +140,7 @@ export default function Home() {
                     placeholder="Write your thoughts about today..."
                     value={reflection}
                     onChange={handleReflectionChange}
+                    className="resize-none" // Prevent resizing
                   />
                 </div>
                 <div>
@@ -162,12 +175,12 @@ export default function Home() {
                     />
                   </PopoverContent>
                 </Popover>
-                <Button onClick={handleSaveEntry}>Save Entry</Button>
+                <Button onClick={handleSaveEntry} className="w-full">Save Entry</Button>
               </CardContent>
             </Card>
 
             {/* Heatmap Visualization Card */}
-            <Card>
+            <Card className="col-span-2">
               <CardHeader>
                 <CardTitle>Mood Heatmap</CardTitle>
               </CardHeader>
@@ -200,7 +213,7 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="bg-primary p-4 text-center">
+      <footer className="bg-primary p-4 text-center mt-6">
         <p>&copy; {new Date().getFullYear()} MoodMosiac. All rights reserved.</p>
       </footer>
     </div>
