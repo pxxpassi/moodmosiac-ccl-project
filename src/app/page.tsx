@@ -25,9 +25,7 @@ import {Heatmap} from "@/components/Heatmap";
 
 // Define a schema for the form values
 const formSchema = z.object({
-  reflection: z.string().min(2, {
-    message: 'Reflection must be at least 2 characters.',
-  }),
+  reflection: z.string(),
 });
 
 const coffeeColors = [
