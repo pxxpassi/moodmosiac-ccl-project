@@ -141,8 +141,8 @@ export default function Home() {
                     <RadioGroup defaultValue={coffeeColor} className="flex space-x-2" onValueChange={handleCoffeeColorChange}>
                       {Object.entries(coffeeColors).map(([name, color]) => (
                         <div key={name} className="flex items-center space-x-2">
-                          <RadioGroupItem value={name} id={name} className="h-4 w-4" />
-                          <Label htmlFor={name} className="cursor-pointer">{name}</Label>
+                          <RadioGroupItem value={name} id={name} className="h-4 w-4" style={{ backgroundColor: color }} />
+                          <Label htmlFor={name} className="cursor-pointer sr-only">{name}</Label>
                         </div>
                       ))}
                     </RadioGroup>
