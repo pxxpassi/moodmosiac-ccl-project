@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         {name: 'entryDate', value: {stringValue: entryDate}},
         {name: 'moodColor', value: {stringValue: moodColor}},
         {name: 'reflection', value: {stringValue: reflection}},
-        {name: 'imageUrl', value: {stringValue: imageUrl || null}}, // Handle null imageUrl
+        {name: 'imageUrl', value: {stringValue: imageUrl || ''}}, // Handle null imageUrl
         {name: 'createdAt', value: {stringValue: createdAt}},
         {name: 'updatedAt', value: {stringValue: updatedAt}},
       ],
