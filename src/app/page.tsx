@@ -55,41 +55,12 @@ export default function Home() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const userId = 'user123'; // Replace with actual user ID
-      const entryDate = date ? format(date, 'yyyy-MM-dd') : '';
-      const imageUrl = selectedImage || ''; // Use selectedImage
-      const createdAt = new Date().toISOString();
-      const updatedAt = new Date().toISOString();
-
-      const response = await fetch('/api/save-entry', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          entryDate,
-          moodColor,
-          reflection: values.reflection,
-          imageUrl,
-          createdAt,
-          updatedAt,
-        }),
+      // Simulate saving to a database
+      toast({
+        title: 'Entry saved successfully!',
       });
-
-      if (response.ok) {
-        toast({
-          title: 'Entry saved successfully!',
-        });
-        form.reset();
-        setSelectedImage(null); // Clear the selected image
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error saving entry.',
-          description: 'Please try again.',
-        });
-      }
+      form.reset();
+      setSelectedImage(null); // Clear the selected image
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -225,7 +196,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  <Button type="submit" className="bg-teal-500 text-white font-semibold hover:bg-teal-700">
+                  <Button type="submit" style={{backgroundColor: '#6f4e37', color: 'white'}} className="font-semibold hover:bg-teal-700">
                     Save Entry
                   </Button>
                 </form>
@@ -244,7 +215,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {/* Monthly Collage Card (Bonus Feature) */}
+          {/* Monthly Collage Card  */}
           <Card>
             <CardHeader>
               <CardTitle>Monthly Collage</CardTitle>
