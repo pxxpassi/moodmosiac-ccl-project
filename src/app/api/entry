@@ -1,0 +1,19 @@
+app.use(express.json());
+
+app.post('/api/entry', async (req, res) => {
+  const { userId, entryDate, moodColor, reflection, imageUrl } = req.body;
+
+  try {
+    const entry = await Entry.create({
+      userId,
+      entryDate,
+      moodColor,
+      reflection,
+      imageUrl,
+    });
+    res.status(201).json(entry);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});

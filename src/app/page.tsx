@@ -15,7 +15,6 @@ import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel} from "@/components/ui/form";
 import {cn} from "@/lib/utils";
-import {Color, Coffee} from 'lucide-react';
 import {useRouter} from 'next/navigation';
 import {Calendar} from "@/components/ui/calendar";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
@@ -53,12 +52,31 @@ export default function Home() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      // Simulate saving to a database
+      const formData = {
+        userId: 'abc123', // Replace with logged-in user ID
+        entryDate: format(date || new Date(), 'yyyy-MM-dd'), // Format date correctly
+        moodColor,
+        reflection: values.reflection,
+        imageUrl: selectedImage || '', // Later you can upload and replace this with real S3 URL
+      };
+  
+      const response = await fetch('http://13.201.38.3/api/entries/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to save entry.');
+      }
+  
       toast({
         title: 'Entry saved successfully!',
       });
       form.reset();
-      setSelectedImage(null); // Clear the selected image
+      setSelectedImage(null);
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -66,9 +84,11 @@ export default function Home() {
         description: (error as any).message,
       });
     } finally {
-      router.refresh(); // Refresh the route
+      router.refresh();
     }
   };
+  
+  
 
   // Placeholder data for heatmap
   const heatmapEntries = [
