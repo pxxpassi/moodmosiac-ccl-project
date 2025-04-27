@@ -1,265 +1,158 @@
-'use client';
+"use client";
 
-import {useState, useEffect} from 'react';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Calendar} from '@/components/ui/calendar';
-import {Heatmap} from '@/components/Heatmap';
-import {cn} from '@/lib/utils';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
-import {CalendarIcon} from 'lucide-react';
-import {Label} from '@/components/ui/label';
-import {Textarea} from '@/components/ui/textarea';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
-import {useToast} from '@/hooks/use-toast';
+import React, {useState, useEffect} from 'react';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import {Slider} from "@/components/ui/slider";
+import {Button} from "@/components/ui/button";
+import {Textarea} from "@/components/ui/textarea";
+import {toast} from "@/hooks/use-toast";
+import {useToast} from "@/hooks/use-toast";
+import {Label} from "@/components/ui/label";
 
-const MockedEntries = [
-  {date: '2024-01-05', count: 5},
-  {date: '2024-01-12', count: 3},
-  {date: '2024-01-20', count: 8},
-  {date: '2024-02-01', count: 2},
-  {date: '2024-02-15', count: 6},
-  {date: '2024-03-10', count: 4},
-  {date: '2024-03-25', count: 7},
-  {date: '2024-04-02', count: 9},
-  {date: '2024-04-18', count: 3},
-  {date: '2024-05-05', count: 5},
-  {date: '2024-05-22', count: 1},
-  {date: '2024-06-10', count: 8},
-  {date: '2024-06-28', count: 2},
-  {date: '2024-07-04', count: 6},
-  {date: '2024-07-19', count: 4},
-  {date: '2024-08-01', count: 7},
-  {date: '2024-08-16', count: 9},
-  {date: '2024-09-08', count: 3},
-  {date: '2024-09-24', count: 5},
-  {date: '2024-10-02', count: 1},
-  {date: '2024-10-17', count: 8},
-  {date: '2024-11-09', count: 2},
-  {date: '2024-11-25', count: 6},
-  {date: '2024-12-03', count: 4},
-  {date: '2024-12-20', count: 7},
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel} from "@/components/ui/form";
+import {cn} from "@/lib/utils";
+import {Color, Coffee} from 'lucide-react';
+import {useRouter} from 'next/navigation';
+import {Calendar} from "@/components/ui/calendar";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {CalendarIcon} from "lucide-react";
+import {format} from "date-fns";
+import {Heatmap} from "@/components/Heatmap";
+
+// Define a schema for the form values
+const formSchema = z.object({
+  reflection: z.string().min(2, {
+    message: 'Reflection must be at least 2 characters.',
+  }),
+});
+
+const coffeeColors = [
+  {name: 'Espresso', hex: '#462e05'},
+  {name: 'Coffee', hex: '#6f4e37'},
+  {name: 'Latte', hex: '#a38259'},
+  {name: 'Cappuccino', hex: '#c69c6e'},
+  {name: 'Macchiato', hex: '#e3d5b2'},
 ];
 
-const coffeeColors = {
-  Espresso: '#4C2F27',
-  Americano: '#6F4E37',
-  Cappuccino: '#B38B6D',
-  Latte: '#E1C6B3',
-  'Iced Coffee': '#C6AC99',
-};
-
-type CoffeeColorKey = keyof typeof coffeeColors;
-
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [moodColor, setMoodColor] = useState(coffeeColors.Latte); // Default to Latte
-  const [reflection, setReflection] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [user, setUser] = useState({
-    name: 'User',
-    imageUrl: 'https://picsum.photos/50/50', // Placeholder image
-  });
-  const [coffeeColor, setCoffeeColor] = useState<CoffeeColorKey>('Latte');
   const {toast} = useToast();
+  const [moodColor, setMoodColor] = useState<string>('#6f4e37');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const router = useRouter();
 
-  useEffect(() => {
-    // Check for authentication status here (e.g., JWT token in localStorage)
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
+  // Initialize react-hook-form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      reflection: '',
+    },
+  });
 
-  const handleLogin = () => {
-    // Implement login logic here (e.g., call backend API)
-    localStorage.setItem('token', 'mocked_token');
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    // Implement logout logic here
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-  };
-
-  const handleCoffeeColorChange = (value: string) => {
-    setCoffeeColor(value as CoffeeColorKey);
-    setMoodColor(coffeeColors[value as CoffeeColorKey]);
-  };
-
-  const handleReflectionChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    setReflection(event.target.value);
-  };
-
-  useEffect(() => {
-    if (selectedImage) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(selectedImage);
-    } else {
-      setImagePreviewUrl(null);
-    }
-  }, [selectedImage]);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    setSelectedImage(file);
-  };
-
-  const handleSaveEntry = async () => {
-    if (!date || !moodColor || !reflection) {
-      toast({
-        variant: 'destructive',
-        title: 'Error saving entry',
-        description: 'Please fill in all fields.',
-      });
-      return;
-    }
-
-    const entryData = {
-      userId: 'abc123', // Replace with actual user ID
-      entryDate: date.toISOString().split('T')[0],
-      moodColor: moodColor,
-      reflection: reflection,
-      imageUrl: imagePreviewUrl || null, // Store URL, not the file itself
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const userId = 'user123'; // Replace with actual user ID
+      const entryDate = date ? format(date, 'yyyy-MM-dd') : '';
+      const imageUrl = selectedImage || ''; // Use selectedImage
+      const createdAt = new Date().toISOString();
+      const updatedAt = new Date().toISOString();
+
       const response = await fetch('/api/save-entry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(entryData),
+        body: JSON.stringify({
+          userId,
+          entryDate,
+          moodColor,
+          reflection: values.reflection,
+          imageUrl,
+          createdAt,
+          updatedAt,
+        }),
       });
 
       if (response.ok) {
         toast({
-          title: 'Entry saved!',
-          description: 'Your mood entry has been saved successfully.',
+          title: 'Entry saved successfully!',
         });
+        form.reset();
+        setSelectedImage(null); // Clear the selected image
       } else {
-        const errorData = await response.json();
         toast({
           variant: 'destructive',
-          title: 'Error saving entry',
-          description: errorData.message || 'Failed to save entry.',
+          title: 'Error saving entry.',
+          description: 'Please try again.',
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error saving entry',
-        description: error.message || 'Failed to save entry.',
+        title: 'Something went wrong.',
+        description: (error as any).message,
       });
+    } finally {
+      router.refresh(); // Refresh the route
+    }
+  };
+
+  // Placeholder data for heatmap
+  const heatmapEntries = [
+    {date: '2024-01-15', count: 1},
+    {date: '2024-02-20', count: 2},
+    {date: '2024-03-10', count: 3},
+    {date: '2024-04-05', count: 4},
+    {date: '2024-05-25', count: 5},
+    {date: '2024-06-12', count: 6},
+    {date: '2024-07-01', count: 7},
+    {date: '2024-08-18', count: 8},
+    {date: '2024-09-08', count: 9},
+    {date: '2024-10-27', count: 10},
+    {date: '2024-11-03', count: 11},
+    {date: '2024-12-30', count: 12},
+  ];
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-secondary text-foreground">
-      <header className="bg-primary p-6 flex justify-between items-center shadow-md">
-        <h1 className="text-2xl font-semibold">MoodMosiac</h1>
-        <div className="flex items-center space-x-4">
-          <Avatar>
-            <AvatarImage src={user.imageUrl} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          {isAuthenticated ? (
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              Logout
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" onClick={handleLogin}>
-              Login
-            </Button>
-          )}
-        </div>
-      </header>
-
-      <main className="container mx-auto p-6 flex-1">
-        {isAuthenticated ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Mood Entry Card */}
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>How was your day?</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="coffeeColor">Mood:</Label>
-                  <RadioGroup
-                    defaultValue={coffeeColor}
-                    className="flex space-x-2"
-                    onValueChange={handleCoffeeColorChange}
-                  >
-                    {Object.entries(coffeeColors).map(([name, color]) => (
-                      <div key={name} className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value={name}
-                          id={name}
-                          className="h-4 w-4"
-                          style={{backgroundColor: color}}
-                        />
-                        <Label htmlFor={name} className="cursor-pointer sr-only">
-                          {name}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="reflection">Reflection:</Label>
-                  <Textarea
-                    id="reflection"
-                    placeholder="Write your thoughts about today..."
-                    value={reflection}
-                    onChange={handleReflectionChange}
-                    className="resize-none text-lg" // Prevent resizing
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="imageUpload">Upload Image:</Label>
-                  <Input
-                    type="file"
-                    id="imageUpload"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                  {imagePreviewUrl && (
-                    <div className="mt-2">
-                      <img
-                        src={imagePreviewUrl}
-                        alt="Uploaded Image"
-                        className="max-h-40 rounded-md"
-                      />
-                    </div>
-                  )}
-                </div>
-
+    <div className="flex flex-col min-h-screen antialiased">
+      <div className="container mx-auto flex-1 p-4">
+        <div className="grid gap-4 grid-cols-1">
+          {/* How was your day Card */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle className="text-2xl">How was your day?</CardTitle>
+              <CardDescription>Select a color, write a reflection, and upload an image to record your mood.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              {/* Date selection */}
+              <div className="grid gap-2">
+                <Label htmlFor="date">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant={'outline'}
                       className={cn(
-                        'w-[300px] justify-start text-left font-normal',
+                        'w-[240px] justify-start text-left font-normal',
                         !date && 'text-muted-foreground'
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? date?.toLocaleDateString() : <span>Pick a date</span>}
+                      <CalendarIcon className="mr-2 h-4 w-4"/>
+                      {date ? format(date, 'PPP') : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -267,58 +160,101 @@ export default function Home() {
                       mode="single"
                       selected={date}
                       onSelect={setDate}
-                      className="rounded-md border"
+                      initialFocus
                     />
                   </PopoverContent>
                 </Popover>
-                <Button
-                  onClick={handleSaveEntry}
-                  className="w-full bg-accent text-accent-foreground hover:bg-accent-foreground hover:text-accent"
-                >
-                  Save Entry
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+              {/* Mood Color Selection */}
+              <div className="grid gap-2">
+                <Label>Mood</Label>
+                <div className="flex items-center space-x-2">
+                  {coffeeColors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setMoodColor(color.hex)}
+                      className="h-8 w-8 rounded-full focus:outline-none"
+                      style={{
+                        backgroundColor: color.hex,
+                        border: moodColor === color.hex ? '2px solid teal' : 'none',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
 
-            {/* Heatmap Visualization Card */}
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>Mood Heatmap</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Heatmap entries={MockedEntries} />
-              </CardContent>
-            </Card>
+              {/* Reflection Text Area */}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="reflection"
+                    render={({field}) => (
+                      <FormItem>
+                        <FormLabel>Reflection</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Write your reflection here." {...field} />
+                        </FormControl>
+                        <FormDescription>Share your thoughts about the day.</FormDescription>
+                      </FormItem>
+                    )}
+                  />
 
-            {/* Monthly Collage Card (Bonus Feature) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Collage (Bonus)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Implement collage generator here */}
-                <p>Collage will be displayed here</p>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Login Required</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Please log in to access the dashboard.</p>
-              <Button onClick={handleLogin}>Login</Button>
+                  {/* Image Upload */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="image">Image Upload</Label>
+                    <input
+                      type="file"
+                      id="image"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <Button asChild variant="outline">
+                      <label htmlFor="image">
+                        Upload Image
+                      </label>
+                    </Button>
+                    {selectedImage && (
+                      <div className="relative w-32 h-32">
+                        <img
+                          src={selectedImage}
+                          alt="Uploaded"
+                          className="rounded-md object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <Button type="submit" className="bg-teal-500 text-white font-semibold hover:bg-teal-700">
+                    Save Entry
+                  </Button>
+                </form>
+              </Form>
             </CardContent>
           </Card>
-        )}
-      </main>
 
-      <footer className="bg-primary p-4 text-center mt-6">
-        <p>
-          &copy; {new Date().getFullYear()} MoodMosiac. All rights reserved.
-        </p>
-      </footer>
+          {/* Heatmap Visualization Card */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle>Yearly Mood Heatmap</CardTitle>
+              <CardDescription>A visual overview of your mood trends.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Heatmap entries={heatmapEntries}/>
+            </CardContent>
+          </Card>
+
+          {/* Monthly Collage Card (Bonus Feature) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Collage</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Implement collage generator here */}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
