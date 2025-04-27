@@ -193,7 +193,7 @@ export default function Home() {
         {isAuthenticated ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Mood Entry Card */}
-            <Card>
+            <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle>How was your day?</CardTitle>
               </CardHeader>
