@@ -57,6 +57,7 @@ export default function Home() {
   const [moodColor, setMoodColor] = useState(coffeeColors.Latte); // Default to Latte
   const [reflection, setReflection] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [date, setDate] = useState<Date | undefined>(new Date());
     const [user, setUser] = useState({
         name: "User",
@@ -94,6 +95,19 @@ export default function Home() {
   const handleReflectionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReflection(event.target.value);
   };
+
+    useEffect(() => {
+        if (selectedImage) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(selectedImage);
+        } else {
+            setImagePreviewUrl(null);
+        }
+    }, [selectedImage]);
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -137,7 +151,7 @@ export default function Home() {
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="coffeeColor">Mood Color:</Label>
+                  <Label htmlFor="coffeeColor">Mood:</Label>
                     <RadioGroup defaultValue={coffeeColor} className="flex space-x-2" onValueChange={handleCoffeeColorChange}>
                       {Object.entries(coffeeColors).map(([name, color]) => (
                         <div key={name} className="flex items-center space-x-2">
@@ -154,18 +168,23 @@ export default function Home() {
                     placeholder="Write your thoughts about today..."
                     value={reflection}
                     onChange={handleReflectionChange}
-                    className="resize-none" // Prevent resizing
+                    className="resize-none text-lg" // Prevent resizing
                   />
                 </div>
-                <div>
-                  <Label htmlFor="imageUpload">Upload Image:</Label>
-                  <Input
-                    type="file"
-                    id="imageUpload"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                </div>
+                  <div>
+                      <Label htmlFor="imageUpload">Upload Image:</Label>
+                      <Input
+                          type="file"
+                          id="imageUpload"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                      />
+                      {imagePreviewUrl && (
+                          <div className="mt-2">
+                              <img src={imagePreviewUrl} alt="Uploaded Image" className="max-h-40 rounded-md" />
+                          </div>
+                      )}
+                  </div>
 
                 <Popover>
                   <PopoverTrigger asChild>
@@ -189,7 +208,7 @@ export default function Home() {
                     />
                   </PopoverContent>
                 </Popover>
-                <Button onClick={handleSaveEntry} className="w-full">Save Entry</Button>
+                <Button onClick={handleSaveEntry} className="w-full bg-accent text-accent-foreground hover:bg-accent-foreground hover:text-accent">Save Entry</Button>
               </CardContent>
             </Card>
 
