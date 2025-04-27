@@ -12,6 +12,7 @@ import { CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const MockedEntries = [
   { date: "2024-01-05", count: 5 },
@@ -41,9 +42,19 @@ const MockedEntries = [
   { date: "2024-12-20", count: 7 },
 ];
 
+const coffeeColors = {
+  "Espresso": "#4C2F27",
+  "Americano": "#6F4E37",
+  "Cappuccino": "#B38B6D",
+  "Latte": "#E1C6B3",
+  "Iced Coffee": "#C6AC99",
+};
+
+type CoffeeColorKey = keyof typeof coffeeColors;
+
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [moodColor, setMoodColor] = useState("#E6E6FA"); // Default to soft lavender
+  const [moodColor, setMoodColor] = useState(coffeeColors.Latte); // Default to Latte
   const [reflection, setReflection] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -51,6 +62,7 @@ export default function Home() {
         name: "User",
         imageUrl: "https://picsum.photos/50/50", // Placeholder image
     });
+    const [coffeeColor, setCoffeeColor] = useState<CoffeeColorKey>("Latte");
 
   useEffect(() => {
     // Check for authentication status here (e.g., JWT token in localStorage)
@@ -74,9 +86,10 @@ export default function Home() {
     setIsAuthenticated(false);
   };
 
-  const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setMoodColor(event.target.value);
-  };
+    const handleCoffeeColorChange = (value: string) => {
+        setCoffeeColor(value as CoffeeColorKey);
+        setMoodColor(coffeeColors[value as CoffeeColorKey]);
+    };
 
   const handleReflectionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setReflection(event.target.value);
@@ -123,15 +136,16 @@ export default function Home() {
                 <CardTitle>How was your day?</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="moodColor">Mood Color:</Label>
-                  <input
-                    type="color"
-                    id="moodColor"
-                    value={moodColor}
-                    onChange={handleColorChange}
-                    className="h-8 w-16" // Adjust the size of the color input
-                  />
+                <div className="grid gap-2">
+                  <Label htmlFor="coffeeColor">Mood Color:</Label>
+                    <RadioGroup defaultValue={coffeeColor} className="flex space-x-2" onValueChange={handleCoffeeColorChange}>
+                      {Object.entries(coffeeColors).map(([name, color]) => (
+                        <div key={name} className="flex items-center space-x-2">
+                          <RadioGroupItem value={name} id={name} className="h-4 w-4" />
+                          <Label htmlFor={name} className="cursor-pointer">{name}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="reflection">Reflection:</Label>
